@@ -2,8 +2,9 @@ package com.example.api_server.controller;
 
 import com.example.api_server.data_source.dao.ProductDAOImpl;
 import com.example.api_server.model.Product;
+import lombok.AllArgsConstructor;
 import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -12,49 +13,42 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 
+@AllArgsConstructor
 @RestController
 public class ProductManagerController {
     private static final Logger logger = Logger.getLogger(ProductManagerController.class);
 
     private ProductDAOImpl productDAO;
 
-    @Autowired
-    public ProductManagerController(ProductDAOImpl productDAO) {
-        this.productDAO = productDAO;
+    @RequestMapping(value = "/products")
+    public ResponseEntity<?> fetchAllProducts(@RequestParam(defaultValue = "0") Integer page,
+                                              @RequestParam(defaultValue = "30") Integer limit) {
+        List<Product> products = productDAO.findAll(PageRequest.of(page, limit)).getContent();
+        return new ResponseEntity<>(ResponseEntity.ok(products), HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/products",
-            method = RequestMethod.GET
-    )
-    public ResponseEntity<List<Product>> fetchAllProducts() {
-        List<Product> products = productDAO.findAll();
-        return new ResponseEntity<>(products, HttpStatus.OK);
-    }
-
-    @RequestMapping(value = "/products/{id}",
-            method = RequestMethod.GET
-    )
-    public ResponseEntity<Product> getProductById(@PathVariable long id) {
+    @RequestMapping(value = "/products/{id}")
+    public ResponseEntity<?> getProductById(@PathVariable Long id) {
         Optional<Product> product = productDAO.findById(id);
-        return product.map(value -> new ResponseEntity<>(value, HttpStatus.OK)).orElseGet(() -> new ResponseEntity<>(HttpStatus.OK));
+        return product.map(value -> new ResponseEntity<>(ResponseEntity.ok(value), HttpStatus.OK)).orElseGet(() -> new ResponseEntity<>(ResponseEntity.notFound().build(), HttpStatus.NOT_FOUND));
     }
 
-    @RequestMapping(value = "/products/add",
+    @RequestMapping(
+            value = "/products/add",
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public ResponseEntity<Object> addProduct(@RequestBody Product product) {
-        //TODO
+    public ResponseEntity<?> addProduct(@RequestBody Product product) {
         productDAO.save(product);
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>(ResponseEntity.ok(product), HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/products/delete",
-            method = RequestMethod.POST,
-            produces = MediaType.APPLICATION_JSON_VALUE
+    @RequestMapping(
+            value = "/products/delete",
+            method = RequestMethod.POST
     )
-    public ResponseEntity<Object> removeProduct(@RequestBody long ID) {
+    public ResponseEntity<?> removeProduct(@RequestBody Long ID) {
         productDAO.deleteById(ID);
-        return new ResponseEntity<>(HttpStatus.OK, HttpStatus.OK);
+        return new ResponseEntity<>(ResponseEntity.ok(ID), HttpStatus.OK);
     }
 }

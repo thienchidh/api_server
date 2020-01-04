@@ -19,7 +19,7 @@ public class UserSession {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
 
-//    @Column(unique = true)
+    //    @Column(unique = true)
     private String token;
 
     @GeneratedValue(strategy = GenerationType.AUTO)
