@@ -28,7 +28,10 @@ public class Account {
     private String username;
 
     @Column(name = "password", nullable = false)
-    private String password;// hashed
+    private String password;
+
+    @Transient
+    private String newPassword;
 
     @Column(name = "salt")
     private String salt;
@@ -41,6 +44,6 @@ public class Account {
     private String role = Role.IS_USER;
 
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "userId")
     private User user;
 }

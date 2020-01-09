@@ -12,4 +12,8 @@ public interface ActionAccount {
     UserSession login(@NonNull String token);
 
     boolean logout(@NonNull String token);
+
+    boolean changePassword(Account account);
+
+//    boolean changePassword(UserSession session, Account account);
 }

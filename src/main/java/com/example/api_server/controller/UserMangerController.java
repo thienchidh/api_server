@@ -30,19 +30,19 @@ public class UserMangerController {
         if (session != null) {
             return new ResponseEntity<>(ResponseEntity.ok(session), HttpStatus.OK);
         }
-        return new ResponseEntity<>(ResponseEntity.ok().build(), HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(ResponseEntity.notFound().build(), HttpStatus.NOT_FOUND);
     }
 
     @RequestMapping(
             value = "/loginWithToken",
             method = RequestMethod.POST
     )
-    ResponseEntity<?> userLoginWithToken(@RequestBody String token) {
+    ResponseEntity<?> userLogin(@RequestBody String token) {
         UserSession session = accountsDAO.login(token);
         if (session != null) {
             return new ResponseEntity<>(ResponseEntity.ok(session), HttpStatus.OK);
         }
-        return new ResponseEntity<>(ResponseEntity.ok().build(), HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(ResponseEntity.notFound().build(), HttpStatus.NOT_FOUND);
     }
 
     @RequestMapping(
@@ -63,6 +63,15 @@ public class UserMangerController {
         if (session != null) {
             return new ResponseEntity<>(ResponseEntity.ok(session), HttpStatus.OK);
         }
-        return new ResponseEntity<>(ResponseEntity.ok().build(), HttpStatus.NOT_MODIFIED);
+        return new ResponseEntity<>(ResponseEntity.notFound().build(), HttpStatus.NOT_FOUND);
+    }
+
+    @RequestMapping(
+            value = "/changePassword",
+            method = RequestMethod.POST
+    )
+    ResponseEntity<?> userChangePassword(@RequestBody Account account) {
+        boolean isPasswordChanged = accountsDAO.changePassword(account);
+        return isPasswordChanged ? new ResponseEntity<>(ResponseEntity.ok().build(), HttpStatus.OK) : new ResponseEntity<>(ResponseEntity.notFound().build(), HttpStatus.NOT_FOUND);
     }
 }

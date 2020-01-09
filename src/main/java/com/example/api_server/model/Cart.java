@@ -22,10 +22,10 @@ public class Cart {
     private Long id;
 
     @ManyToMany
-    @JoinColumn(name = "product_id")
+    @JoinColumn(name = "productId")
     private List<Product> products;
 
     @OneToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "userId")
     private User user;
 }

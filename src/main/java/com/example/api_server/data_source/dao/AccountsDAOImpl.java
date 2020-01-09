@@ -3,6 +3,7 @@ package com.example.api_server.data_source.dao;
 import com.example.api_server.data_source.repo.AccountsRepository;
 import com.example.api_server.data_source.repo.UserSessionRepository;
 import com.example.api_server.model.Account;
+import com.example.api_server.model.User;
 import com.example.api_server.model.UserSession;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
@@ -84,7 +85,8 @@ public class AccountsDAOImpl implements AccountsDAO, ActionAccount {
             Date today = Calendar.getInstance().getTime();
 
             if (session.getDateExpired().after(today)) {
-                return session;
+                session.setDateExpired(getAfterDate());
+                return userSessionRepo.save(session);
             }
         }
         return null;
@@ -102,6 +104,27 @@ public class AccountsDAOImpl implements AccountsDAO, ActionAccount {
             if (session.getDateExpired().after(today)) {
                 session.setDateExpired(today);
                 userSessionRepo.save(session);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean changePassword(Account accountClient) {
+        Account probe = Account.builder().username(accountClient.getUsername()).build();
+
+        Optional<Account> optional = accountsRepo.findOne(Example.of(probe));
+
+        if (optional.isPresent()) {
+            Account accountDB = optional.get();
+            if (isLoginSuccess(accountClient, accountDB)) {
+                // update new password to datasource account
+                accountDB.setPassword(accountClient.getNewPassword());
+                saveAccount(accountDB);
+
+                // logout all session of this user ?
+                logoutAllSessionOfUser(accountDB.getUser().getId());
                 return true;
             }
         }
@@ -138,13 +161,39 @@ public class AccountsDAOImpl implements AccountsDAO, ActionAccount {
         return userSessionRepo.findOne(Example.of(probe));
     }
 
-    private UserSession makeUserSession(Account account) {
-        Calendar calendar = Calendar.getInstance();
+    private void logoutAllSessionOfUser(Long id) {
+        UserSession probe = UserSession.builder()
+                .user(User.builder()
+                        .id(id)
+                        .build()
+                )
+                .build();
+        List<UserSession> userSessions = userSessionRepo.findAll(Example.of(probe));
+        Date today = Calendar.getInstance().getTime();
+        for (UserSession e : userSessions) {
+            if (e.getDateExpired().after(today)) {
+                e.setDateExpired(today);
+            }
+        }
+        userSessionRepo.saveAll(userSessions);
+    }
 
-        calendar.add(Calendar.DAY_OF_MONTH, 30);
-        Date dateExpiredToken = calendar.getTime();
+    private UserSession makeUserSession(Account account) {
+        Date dateExpiredToken = getAfterDate();
 
         return makeUserSession(account, dateExpiredToken);
+    }
+
+    private Date getAfterDate() {
+        final int amountDefault = 30;
+        return getAfterDate(amountDefault);
+    }
+
+    private Date getAfterDate(int amount) {
+        Calendar calendar = Calendar.getInstance();
+
+        calendar.add(Calendar.DAY_OF_MONTH, amount);
+        return calendar.getTime();
     }
 
     private UserSession makeUserSession(Account account, Date dateExpiredToken) {

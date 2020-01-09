@@ -30,7 +30,7 @@ public class UserSession {
     private Date dateExpired;
 
     @OneToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "userId")
     private User user;
 }
 
