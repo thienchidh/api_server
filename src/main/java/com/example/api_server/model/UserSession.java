@@ -12,21 +12,22 @@ import java.util.Date;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity(name = "USER_SESSIONS")
+@Entity
+@Table(name = "USER_SESSIONS")
 public class UserSession {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private long id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    //    @Column(unique = true)
+    @Column(unique = true)
     private String token;
 
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "dateExpired", nullable = false)
     private Date dateExpired;
 
     @OneToOne
-    @JoinColumn(name = "USERS_ID")
+    @JoinColumn(name = "user_id")
     private User user;
 }
 

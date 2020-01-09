@@ -1,73 +1,149 @@
 package com.example.api_server.data_source.dao;
 
 import com.example.api_server.data_source.repo.AccountsRepository;
+import com.example.api_server.data_source.repo.UserSessionRepository;
 import com.example.api_server.model.Account;
-import com.example.api_server.model.User;
+import com.example.api_server.model.UserSession;
 import lombok.AllArgsConstructor;
+import org.apache.log4j.Logger;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @AllArgsConstructor
 @Service
 public class AccountsDAOImpl implements AccountsDAO, ActionAccount {
-    AccountsRepository repo;
+
+    private static final Logger logger = Logger.getLogger(AccountsDAOImpl.class);
+
+    private AccountsRepository accountsRepo;
+    private UserSessionRepository userSessionRepo;
+    private PasswordEncoder passwordEncoder;
 
     @Override
     public List<Account> findAll() {
-        return repo.findAll();
+        return accountsRepo.findAll();
     }
 
     @Override
     public Page<Account> findAll(Pageable pageable) {
-        return repo.findAll(pageable);
+        return accountsRepo.findAll(pageable);
     }
 
     @Override
     public Optional<Account> findById(long id) {
-        return repo.findById(id);
+        return accountsRepo.findById(id);
     }
 
     @Override
     public void save(Account o) {
-        repo.save(o);
+        accountsRepo.save(o);
     }
 
     @Override
     public void deleteById(long id) {
-        repo.deleteById(id);
+        accountsRepo.deleteById(id);
     }
 
     @Override
     public void delete(Account o) {
-        repo.delete(o);
+        accountsRepo.delete(o);
     }
 
     @Override
-    public User loginWithAccount(Account account) {
+    public UserSession login(Account account) {
+        Account probe = Account.builder().username(account.getUsername()).build();
 
-        // TODO
+        Optional<Account> optional = accountsRepo.findOne(Example.of(probe));
+
+        if (optional.isPresent()) {
+            Account accountDB = optional.get();
+            if (passwordEncoder.matches(account.getPassword() + accountDB.getSalt(), accountDB.getPassword())) {
+                // login success! now, we make a token
+                return makeUserSession(accountDB);
+            }
+        }
         return null;
     }
 
     @Override
-    public User loginWithToken(String token) {
+    public UserSession login(String token) {
 
-        // TODO
+        UserSession probe = UserSession.builder().token(token).build();
+        Optional<UserSession> optional = userSessionRepo.findOne(Example.of(probe));
+
+        if (optional.isPresent()) {
+            UserSession session = optional.get();
+            Date dateExpired = session.getDateExpired();
+            Date now = Calendar.getInstance().getTime();
+
+            if (dateExpired.after(now)) {
+                return session;
+            }
+        }
         return null;
     }
 
     @Override
     public boolean logout(String token) {
-        return true;
+
+        UserSession probe = UserSession.builder().token(token).build();
+        Optional<UserSession> optional = userSessionRepo.findOne(Example.of(probe));
+
+        if (optional.isPresent()) {
+            UserSession session = optional.get();
+            Date dateExpired = session.getDateExpired();
+            Date now = Calendar.getInstance().getTime();
+
+            if (dateExpired.after(now)) {
+                session.setDateExpired(now);
+                userSessionRepo.save(session);
+            }
+            return true;
+        }
+        return false;
     }
 
     @Override
-    public User register(Account account) {
-        // TODO
-        return null;
+    public UserSession register(Account account) {
+
+        Account probe = Account.builder().username(account.getUsername()).build();
+
+        boolean isAccountExists = accountsRepo.exists(Example.of(probe));
+
+        if (isAccountExists) return null;
+
+        Date today = Calendar.getInstance().getTime();
+        String salt = passwordEncoder.encode(today.toString());
+        account.setSalt(salt);
+
+        String hashedPassword = passwordEncoder.encode(account.getPassword() + salt);
+        account.setPassword(hashedPassword);
+
+        // save to datasource
+        accountsRepo.save(account);
+
+        return makeUserSession(account, today);
+    }
+
+    private UserSession makeUserSession(Account account) {
+        return makeUserSession(account, Calendar.getInstance().getTime());
+    }
+
+    private UserSession makeUserSession(Account account, Date today) {
+
+        Calendar cal = GregorianCalendar.getInstance();
+        cal.setTime(today);
+        cal.add(Calendar.DAY_OF_MONTH, 30);
+        Date today30 = cal.getTime();
+
+        String token = account.getUsername() + passwordEncoder.encode(account.getPassword());
+        UserSession session = UserSession.builder().token(token).dateExpired(today30).user(account.getUser()).build();
+        userSessionRepo.save(session);
+        return session;
     }
 }

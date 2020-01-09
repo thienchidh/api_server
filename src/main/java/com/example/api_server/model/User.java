@@ -12,18 +12,19 @@ import javax.persistence.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-@Entity(name = "USERS")
+@Entity
+@Table(name = "USERS")
 public class User {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private long id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    private Long id;
 
+    @Column(name = "name")
     private String name;
+    @Column(name = "address")
     private String address;
 
+    @Column(name = "other")
     private String other;
-
-    @OneToOne
-    @JoinColumn(name = "ACCOUNTS_ID")
-    private Account account;
 }

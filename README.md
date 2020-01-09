@@ -1,6 +1,12 @@
 
 # **When reading the code, it may be ~~_slightly different_~~ from the report!**
 
+#**Config before run/build**
+    - backend:
+        cd src/main/resources/application.properties
+        edit config [database]
+    -   frontend:
+        //TODO        
 
 #**TODO**
 

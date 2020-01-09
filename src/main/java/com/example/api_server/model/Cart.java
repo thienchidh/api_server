@@ -15,14 +15,14 @@ import java.util.List;
 @Entity(name = "CARTS")
 public class Cart {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private long id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @ManyToMany
-    @JoinColumn(name = "PRODUCTS_ID")
+    @JoinColumn(name = "product_id")
     private List<Product> products;
 
     @OneToOne
-    @JoinColumn(name = "USERS_ID")
+    @JoinColumn(name = "user_id")
     private User user;
 }

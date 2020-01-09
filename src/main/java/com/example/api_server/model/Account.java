@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -12,24 +13,31 @@ import java.util.Date;
 @AllArgsConstructor
 @Builder
 @Data
-@Entity(name = "ACCOUNTS")
+@Entity
+@Table(name = "ACCOUNTS")
 public class Account {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private long id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    private Long id;
 
-    private String name;
+    @Column(name = "username", unique = true, nullable = false)
+    private String username;
 
+    @Column(name = "password", nullable = false)
     private String password;// hashed
+
+    @Column(name = "salt")
     private String salt;
-    private String token;
 
-    @OneToOne
-    @JoinColumn(name = "USERS_ID")
-    private User user;
-
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @CreationTimestamp
+    @Column(name = "dateCreated")
     private Date dateCreated;
 
-    private Role role;
+    // default rule = users
+    private String role = Role.IS_USER;
+
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "user_id")
+    private User user;
 }

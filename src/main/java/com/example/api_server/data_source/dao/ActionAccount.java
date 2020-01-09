@@ -1,14 +1,14 @@
 package com.example.api_server.data_source.dao;
 
 import com.example.api_server.model.Account;
-import com.example.api_server.model.User;
+import com.example.api_server.model.UserSession;
 
 public interface ActionAccount {
-    User register(Account account);
+    UserSession register(Account account);
 
-    User loginWithAccount(Account account);
+    UserSession login(Account account);
 
-    User loginWithToken(String token);
+    UserSession login(String token);
 
     boolean logout(String token);
 }

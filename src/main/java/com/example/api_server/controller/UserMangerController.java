@@ -2,7 +2,7 @@ package com.example.api_server.controller;
 
 import com.example.api_server.data_source.dao.AccountsDAOImpl;
 import com.example.api_server.model.Account;
-import com.example.api_server.model.User;
+import com.example.api_server.model.UserSession;
 import lombok.AllArgsConstructor;
 import org.apache.log4j.Logger;
 import org.springframework.http.HttpStatus;
@@ -25,8 +25,18 @@ public class UserMangerController {
             method = RequestMethod.POST
     )
     ResponseEntity<?> userLogin(@RequestBody Account account) {
-        User user = accountsDAO.loginWithAccount(account);
-        return new ResponseEntity<>(ResponseEntity.ok(user), HttpStatus.OK);
+        UserSession session = accountsDAO.login(account);
+        return new ResponseEntity<>(ResponseEntity.ok(session), HttpStatus.OK);
+    }
+
+    @RequestMapping(
+            value = "/loginWithToken",
+            method = RequestMethod.POST
+    )
+    ResponseEntity<?> userLoginWithToken(@RequestBody String token) {
+        logger.info("token=" + token);
+        UserSession session = accountsDAO.login(token);
+        return new ResponseEntity<>(ResponseEntity.ok(session), HttpStatus.OK);
     }
 
     @RequestMapping(
@@ -44,7 +54,8 @@ public class UserMangerController {
             method = RequestMethod.POST
     )
     ResponseEntity<?> userRegister(@RequestBody Account account) {
-        User user = accountsDAO.register(account);
-        return new ResponseEntity<>(ResponseEntity.ok(user), HttpStatus.OK);
+        logger.info("account=" + account);
+        UserSession session = accountsDAO.register(account);
+        return new ResponseEntity<>(ResponseEntity.ok(session), HttpStatus.OK);
     }
 }
