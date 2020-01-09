@@ -1,5 +1,6 @@
 package com.example.api_server.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,8 +17,10 @@ import java.util.Date;
 @Table(name = "USER_SESSIONS")
 public class UserSession {
 
+    @JsonIgnore
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Long id;
 
     @Column(unique = true)

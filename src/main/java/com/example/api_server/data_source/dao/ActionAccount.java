@@ -2,13 +2,14 @@ package com.example.api_server.data_source.dao;
 
 import com.example.api_server.model.Account;
 import com.example.api_server.model.UserSession;
+import org.springframework.lang.NonNull;
 
 public interface ActionAccount {
-    UserSession register(Account account);
+    UserSession register(@NonNull Account account);
 
-    UserSession login(Account account);
+    UserSession login(@NonNull Account account);
 
-    UserSession login(String token);
+    UserSession login(@NonNull String token);
 
-    boolean logout(String token);
+    boolean logout(@NonNull String token);
 }

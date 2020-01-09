@@ -3,7 +3,8 @@ package com.example.api_server.controller;
 import com.example.api_server.data_source.dao.CartsDAOImpl;
 import com.example.api_server.model.Cart;
 import lombok.AllArgsConstructor;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 @AllArgsConstructor
 @RestController
 public class CartManagerController {
-    private static final Logger logger = Logger.getLogger(CartManagerController.class);
+    private static final Logger logger = LoggerFactory.getLogger(CartManagerController.class);
 
     private CartsDAOImpl cartsDAO;
 
@@ -39,7 +40,7 @@ public class CartManagerController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     public ResponseEntity<?> updateCart(@RequestBody String token, @RequestBody Cart cart) {
-        logger.info(cart);
+        logger.info(cart.toString());
         //TODO
         return new ResponseEntity<>(ResponseEntity.ok(cart), HttpStatus.OK);
     }

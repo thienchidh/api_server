@@ -5,20 +5,25 @@ import com.example.api_server.data_source.repo.UserSessionRepository;
 import com.example.api_server.model.Account;
 import com.example.api_server.model.UserSession;
 import lombok.AllArgsConstructor;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.lang.NonNull;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 
 @AllArgsConstructor
 @Service
 public class AccountsDAOImpl implements AccountsDAO, ActionAccount {
 
-    private static final Logger logger = Logger.getLogger(AccountsDAOImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(AccountsDAOImpl.class);
 
     private AccountsRepository accountsRepo;
     private UserSessionRepository userSessionRepo;
@@ -55,15 +60,14 @@ public class AccountsDAOImpl implements AccountsDAO, ActionAccount {
     }
 
     @Override
-    public UserSession login(Account account) {
-        Account probe = Account.builder().username(account.getUsername()).build();
+    public UserSession login(@NonNull Account accountClient) {
+        Account probe = Account.builder().username(accountClient.getUsername()).build();
 
         Optional<Account> optional = accountsRepo.findOne(Example.of(probe));
 
         if (optional.isPresent()) {
             Account accountDB = optional.get();
-            if (passwordEncoder.matches(account.getPassword() + accountDB.getSalt(), accountDB.getPassword())) {
-                // login success! now, we make a token
+            if (isLoginSuccess(accountClient, accountDB)) {
                 return makeUserSession(accountDB);
             }
         }
@@ -71,17 +75,15 @@ public class AccountsDAOImpl implements AccountsDAO, ActionAccount {
     }
 
     @Override
-    public UserSession login(String token) {
+    public UserSession login(@NonNull String token) {
 
-        UserSession probe = UserSession.builder().token(token).build();
-        Optional<UserSession> optional = userSessionRepo.findOne(Example.of(probe));
+        Optional<UserSession> optional = findUserSessionBy(token);
 
         if (optional.isPresent()) {
             UserSession session = optional.get();
-            Date dateExpired = session.getDateExpired();
-            Date now = Calendar.getInstance().getTime();
+            Date today = Calendar.getInstance().getTime();
 
-            if (dateExpired.after(now)) {
+            if (session.getDateExpired().after(today)) {
                 return session;
             }
         }
@@ -89,61 +91,82 @@ public class AccountsDAOImpl implements AccountsDAO, ActionAccount {
     }
 
     @Override
-    public boolean logout(String token) {
+    public boolean logout(@NonNull String token) {
 
-        UserSession probe = UserSession.builder().token(token).build();
-        Optional<UserSession> optional = userSessionRepo.findOne(Example.of(probe));
+        Optional<UserSession> optional = findUserSessionBy(token);
 
         if (optional.isPresent()) {
             UserSession session = optional.get();
-            Date dateExpired = session.getDateExpired();
-            Date now = Calendar.getInstance().getTime();
+            Date today = Calendar.getInstance().getTime();
 
-            if (dateExpired.after(now)) {
-                session.setDateExpired(now);
+            if (session.getDateExpired().after(today)) {
+                session.setDateExpired(today);
                 userSessionRepo.save(session);
+                return true;
             }
-            return true;
         }
         return false;
     }
 
     @Override
-    public UserSession register(Account account) {
+    public UserSession register(@NonNull Account account) {
+        if (account.getUser() == null) return null;
 
         Account probe = Account.builder().username(account.getUsername()).build();
 
         boolean isAccountExists = accountsRepo.exists(Example.of(probe));
+        return isAccountExists ? null : makeUserSession(saveAccount(account));
+    }
 
-        if (isAccountExists) return null;
+    private boolean isLoginSuccess(@NonNull Account accountClient, Account accountDB) {
+        return passwordEncoder.matches(accountClient.getPassword() + accountDB.getSalt(), accountDB.getPassword());
+    }
 
-        Date today = Calendar.getInstance().getTime();
-        String salt = passwordEncoder.encode(today.toString());
+    private Account saveAccount(@NonNull Account account) {
+        String salt = createSalt();
         account.setSalt(salt);
 
-        String hashedPassword = passwordEncoder.encode(account.getPassword() + salt);
+        String hashedPassword = makePassword(account, salt);
         account.setPassword(hashedPassword);
 
         // save to datasource
-        accountsRepo.save(account);
+        return accountsRepo.save(account);
+    }
 
-        return makeUserSession(account, today);
+    private Optional<UserSession> findUserSessionBy(String token) {
+        UserSession probe = UserSession.builder().token(token).build();
+        return userSessionRepo.findOne(Example.of(probe));
     }
 
     private UserSession makeUserSession(Account account) {
-        return makeUserSession(account, Calendar.getInstance().getTime());
+        Calendar calendar = Calendar.getInstance();
+
+        calendar.add(Calendar.DAY_OF_MONTH, 30);
+        Date dateExpiredToken = calendar.getTime();
+
+        return makeUserSession(account, dateExpiredToken);
     }
 
-    private UserSession makeUserSession(Account account, Date today) {
+    private UserSession makeUserSession(Account account, Date dateExpiredToken) {
 
-        Calendar cal = GregorianCalendar.getInstance();
-        cal.setTime(today);
-        cal.add(Calendar.DAY_OF_MONTH, 30);
-        Date today30 = cal.getTime();
+        return userSessionRepo.save(UserSession.builder()
+                .token(makeToken(account))
+                .dateExpired(dateExpiredToken)
+                .user(account.getUser())
+                .build()
+        );
+    }
 
-        String token = account.getUsername() + passwordEncoder.encode(account.getPassword());
-        UserSession session = UserSession.builder().token(token).dateExpired(today30).user(account.getUser()).build();
-        userSessionRepo.save(session);
-        return session;
+    private String createSalt() {
+        Date today = Calendar.getInstance().getTime();
+        return passwordEncoder.encode(today.toString());
+    }
+
+    private String makePassword(@NonNull Account account, String salt) {
+        return passwordEncoder.encode(account.getPassword() + salt);
+    }
+
+    private String makeToken(@NonNull Account account) {
+        return account.getUsername() + passwordEncoder.encode(account.getPassword());
     }
 }

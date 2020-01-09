@@ -3,7 +3,8 @@ package com.example.api_server.controller;
 import com.example.api_server.data_source.dao.ProductDAOImpl;
 import com.example.api_server.model.Product;
 import lombok.AllArgsConstructor;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -16,7 +17,7 @@ import java.util.Optional;
 @AllArgsConstructor
 @RestController
 public class ProductManagerController {
-    private static final Logger logger = Logger.getLogger(ProductManagerController.class);
+    private static final Logger logger = LoggerFactory.getLogger(ProductManagerController.class);
 
     private ProductDAOImpl productDAO;
 
