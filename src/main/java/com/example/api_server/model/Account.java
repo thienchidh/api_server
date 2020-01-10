@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.*;
@@ -41,6 +42,8 @@ public class Account {
     private Date dateCreated;
 
     // default rule = users
+    @Column(name = "role", nullable = false)
+    @ColumnDefault("'" + Role.IS_USER + "'")
     private String role = Role.IS_USER;
 
     @OneToOne(cascade = CascadeType.ALL)

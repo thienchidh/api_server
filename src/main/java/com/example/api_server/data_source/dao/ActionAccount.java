@@ -13,7 +13,7 @@ public interface ActionAccount {
 
     boolean logout(@NonNull String token);
 
-    boolean changePassword(Account account);
+    boolean changePassword(@NonNull Account account);
 
 //    boolean changePassword(UserSession session, Account account);
 }

@@ -111,7 +111,7 @@ public class AccountsDAOImpl implements AccountsDAO, ActionAccount {
     }
 
     @Override
-    public boolean changePassword(Account accountClient) {
+    public boolean changePassword(@NonNull Account accountClient) {
         Account probe = Account.builder().username(accountClient.getUsername()).build();
 
         Optional<Account> optional = accountsRepo.findOne(Example.of(probe));

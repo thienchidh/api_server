@@ -27,6 +27,10 @@ public class User {
     private String name;
     @Column(name = "address")
     private String address;
+//
+//    @JsonIgnore
+//    @Column(name = "email")
+//    private String email;
 
     @Column(name = "other")
     private String other;
