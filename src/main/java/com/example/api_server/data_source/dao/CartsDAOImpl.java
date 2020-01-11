@@ -3,6 +3,8 @@ package com.example.api_server.data_source.dao;
 import com.example.api_server.data_source.repo.CartsRepository;
 import com.example.api_server.helper.AuthenticationHelper;
 import com.example.api_server.model.Cart;
+import com.example.api_server.model.User;
+import com.example.api_server.model.UserSession;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
@@ -17,6 +19,7 @@ import java.util.Optional;
 public class CartsDAOImpl implements CartsDAO {
     private AuthenticationHelper authentication;
     private CartsRepository cartsRepo;
+    private UserSessionDAO userSessionDAO;
 
     @Override
     public <S extends Cart> List<S> findAll(Example<S> example) {
@@ -54,18 +57,46 @@ public class CartsDAOImpl implements CartsDAO {
     }
 
     @Override
+    public boolean existsById(long id) {
+        return cartsRepo.existsById(id);
+    }
+
+    @Override
     public boolean updateCart(String token, Cart cart) {
         if (authentication.isAliveToken(token)) {
-            //TODO
-            /*Long userId = cart.getUser().getId();
-
-            return cartsRepo.save();*/
+            Optional<UserSession> optionalUserSession = userSessionDAO.findUserSessionBy(token);
+            if (optionalUserSession.isPresent()) {
+                UserSession session = optionalUserSession.get();
+                Optional<Cart> optional = cartsRepo.findOne(Example.of(Cart.builder()
+                        .user(session.getUser())
+                        .build()
+                ));
+                if (optional.isPresent()) {
+                    cart.setId(optional.get().getId());
+                    save(cart);
+                }
+                return true;
+            }
         }
         return false;
     }
 
     @Override
     public Cart findCart(String token) {
+        Optional<UserSession> optionalUserSession = userSessionDAO.findUserSessionBy(token);
+        if (optionalUserSession.isPresent()) {
+            UserSession session = optionalUserSession.get();
+            User user = session.getUser();
+            Optional<Cart> optional = cartsRepo.findOne(Example.of(Cart.builder()
+                    .user(user)
+                    .build()
+            ));
+            return optional.orElseGet(() -> cartsRepo.save(Cart.builder()
+                    .user(user)
+                    .products(List.of())
+                    .build())
+            );
+        }
         return null;
     }
 }

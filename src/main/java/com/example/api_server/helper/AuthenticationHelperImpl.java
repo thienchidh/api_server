@@ -2,6 +2,7 @@ package com.example.api_server.helper;
 
 import com.example.api_server.data_source.repo.UserSessionRepository;
 import com.example.api_server.model.Account;
+import com.example.api_server.model.Role;
 import com.example.api_server.model.UserSession;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Example;
@@ -18,7 +19,6 @@ import java.util.Optional;
 public class AuthenticationHelperImpl implements AuthenticationHelper {
     private PasswordEncoder passwordEncoder;
     private UserSessionRepository sessionRepo;
-    private DateHelper dateHelper;
 
     @Override
     public String createSalt() {
@@ -47,16 +47,38 @@ public class AuthenticationHelperImpl implements AuthenticationHelper {
     }
 
     @Override
-    public boolean isValidToken(String token) {
+    public boolean isValidToken(@NonNull String token) {
         return sessionRepo.exists(Example.of(UserSession.builder().token(token).build()));
     }
 
     @Override
-    public boolean isAliveToken(String token) {
+    public boolean isAliveToken(@NonNull String token) {
         Optional<UserSession> session = sessionRepo.findOne(Example.of(UserSession.builder().token(token).build()));
         if (session.isPresent()) {
             Date today = Calendar.getInstance().getTime();
             return session.get().getDateExpired().after(today);
+        }
+        return false;
+    }
+
+    @Override
+    public boolean isTokenAdmin(@NonNull String token) {
+        if (isAliveToken(token)) {
+            Optional<UserSession> session = sessionRepo.findOne(Example.of(UserSession.builder().token(token).build()));
+            if (session.isPresent()) {
+                return session.get().getAccount().getRole().equals(Role.IS_ADMIN);
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean isTokenUser(@NonNull String token) {
+        if (isAliveToken(token)) {
+            Optional<UserSession> session = sessionRepo.findOne(Example.of(UserSession.builder().token(token).build()));
+            if (session.isPresent()) {
+                return session.get().getAccount().getRole().equals(Role.IS_USER);
+            }
         }
         return false;
     }

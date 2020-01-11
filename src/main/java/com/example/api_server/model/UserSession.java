@@ -32,5 +32,10 @@ public class UserSession {
     @OneToOne
     @JoinColumn(name = "userId")
     private User user;
+
+    @JsonIgnore
+    @OneToOne
+    @JoinColumn(name = "accountId", nullable = false)
+    private Account account;
 }
 

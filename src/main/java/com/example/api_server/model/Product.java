@@ -1,6 +1,5 @@
 package com.example.api_server.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,13 +13,20 @@ import javax.persistence.*;
 @Data
 @Entity(name = "PRODUCTS")
 public class Product {
-    @JsonIgnore
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
+
+    @Column(name = "name")
     private String name;
-    private String price;
-    private String image_link;
+
+    @Column(name = "price")
+    private double price;
+
+    @Column(name = "imageLink")
+    private String imageLink;
+
+    @Column(name = "other")
     private String other;
 }

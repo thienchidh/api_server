@@ -61,6 +61,11 @@ public class UserSessionDAOImpl implements UserSessionDAO {
         sessionRepo.delete(o);
     }
 
+    @Override
+    public boolean existsById(long id) {
+        return sessionRepo.existsById(id);
+    }
+
 
     @Override
     public UserSession addAgeSession(UserSession session) {
@@ -87,6 +92,7 @@ public class UserSessionDAOImpl implements UserSessionDAO {
                 .token(authentication.makeToken(account))
                 .dateExpired(dateExpiredToken)
                 .user(account.getUser())
+                .account(account)
                 .build()
         );
     }

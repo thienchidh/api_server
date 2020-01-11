@@ -67,6 +67,11 @@ public class AccountsDAOImpl implements AccountsDAO {
     }
 
     @Override
+    public boolean existsById(long id) {
+        return accountsRepo.existsById(id);
+    }
+
+    @Override
     public UserSession login(@NonNull Account accountClient) {
         Account probe = Account.builder().username(accountClient.getUsername()).build();
 

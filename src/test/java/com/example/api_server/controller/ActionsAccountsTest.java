@@ -31,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @Setter(onMethod = @__({@Autowired}))
 @TestPropertySource(locations = "classpath:application.properties")
 @TestMethodOrder(value = MethodOrderer.Alphanumeric.class)
-public class ActionsTest {
+public class ActionsAccountsTest {
 
     private static final Logger logger = LoggerFactory.getLogger(UserMangerController.class);
     private AccountsDAO accountsDAO;
@@ -90,8 +90,9 @@ public class ActionsTest {
                                         .build()
                         ).build();
                 UserSession register = accountsDAO.register(account);
-                logger.info(account.getUsername());
-                logger.info(register.getUser().getName());
+                assertNotNull(account.getUsername());
+                assertNotNull(register.getUser());
+                assertNotNull(register.getUser().getName());
             }
         });
 

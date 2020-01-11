@@ -22,6 +22,8 @@ public interface BaseDAO<T> {
     void deleteById(long id);
 
     void delete(T o);
+
+    boolean existsById(long id);
 }
 
 

@@ -1,6 +1,6 @@
 package com.example.api_server.controller.rest;
 
-import com.example.api_server.data_source.dao.CartsDAO;
+import com.example.api_server.controller.services.CartsServices;
 import com.example.api_server.model.Cart;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
@@ -18,20 +18,19 @@ import org.springframework.web.bind.annotation.RestController;
 public class CartManagerController {
     private static final Logger logger = LoggerFactory.getLogger(CartManagerController.class);
 
-    private CartsDAO cartsDAO;
+    private CartsServices cartsServices;
 
     @RequestMapping(
             value = "/cart",
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public ResponseEntity<?> getCart(@RequestBody String token) {
-        // TODO
-//        Optional<Cart> cart = cartsDAO.findById(id);
-//        if (cart.isPresent()) {
-//            return new ResponseEntity<>(ResponseEntity.ok(cart.get()), HttpStatus.OK);
-//        }
-        return new ResponseEntity<>(ResponseEntity.ok().build(), HttpStatus.OK);
+    public ResponseEntity<?> findCart(@RequestBody String token) {
+        Cart cart = cartsServices.findCart(token);
+        if (cart != null) {
+            return new ResponseEntity<>(ResponseEntity.ok(cart), HttpStatus.OK);
+        }
+        return new ResponseEntity<>(ResponseEntity.notFound().build(), HttpStatus.NOT_FOUND);
     }
 
     @RequestMapping(
@@ -40,9 +39,10 @@ public class CartManagerController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     public ResponseEntity<?> updateCart(@RequestBody String token, @RequestBody Cart cart) {
-        logger.info(cart.toString());
-        boolean isSuccess = cartsDAO.updateCart(token, cart);
-        //TODO
-        return new ResponseEntity<>(ResponseEntity.ok(cart), HttpStatus.OK);
+        boolean isUpdated = cartsServices.updateCart(token, cart);
+        if (isUpdated) {
+            return new ResponseEntity<>(ResponseEntity.ok(cart), HttpStatus.OK);
+        }
+        return new ResponseEntity<>(ResponseEntity.notFound().build(), HttpStatus.NOT_FOUND);
     }
 }

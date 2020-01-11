@@ -51,4 +51,9 @@ public class UserDAOImpl implements UserDAO {
     public void delete(User o) {
         repository.delete(o);
     }
+
+    @Override
+    public boolean existsById(long id) {
+        return repository.existsById(id);
+    }
 }

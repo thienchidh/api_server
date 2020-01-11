@@ -51,4 +51,9 @@ public class ProductDAOImpl implements ProductDAO {
     public void delete(Product o) {
         repo.delete(o);
     }
+
+    @Override
+    public boolean existsById(long id) {
+        return repo.existsById(id);
+    }
 }
