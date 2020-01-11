@@ -33,6 +33,6 @@ build/
 ## log
 log.log
 
-.mvn
+.mvn/
 
 

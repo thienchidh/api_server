@@ -2,6 +2,7 @@ package com.example.api_server.controller.rest;
 
 import com.example.api_server.controller.services.CartsServices;
 import com.example.api_server.model.Cart;
+import com.example.api_server.model.MyRequest;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +39,9 @@ public class CartManagerController {
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public ResponseEntity<?> updateCart(@RequestBody String token, @RequestBody Cart cart) {
+    public ResponseEntity<?> updateCart(@RequestBody MyRequest<Cart> requestBody) {
+        String token = requestBody.getToken();
+        Cart cart = requestBody.getData();
         boolean isUpdated = cartsServices.updateCart(token, cart);
         if (isUpdated) {
             return new ResponseEntity<>(ResponseEntity.ok(cart), HttpStatus.OK);
