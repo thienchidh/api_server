@@ -1,6 +1,7 @@
 package com.example.api_server.controller.rest;
 
 import com.example.api_server.controller.services.ProductServices;
+import com.example.api_server.model.MyRequest;
 import com.example.api_server.model.Product;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
@@ -39,7 +40,10 @@ public class ProductManagerController {
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public ResponseEntity<?> addProduct(@RequestBody String token, @RequestBody Product product) {
+    public ResponseEntity<?> addProduct(@RequestBody MyRequest<Product> requestBody) {
+        String token = requestBody.getToken();
+        Product product = requestBody.getData();
+
         productServices.save(token, product);
         return new ResponseEntity<>(ResponseEntity.ok(product), HttpStatus.OK);
     }
@@ -48,8 +52,11 @@ public class ProductManagerController {
             value = "/products/delete",
             method = RequestMethod.POST
     )
-    public ResponseEntity<?> removeProduct(@RequestBody String token, @RequestBody Long ID) {
-        productServices.deleteById(token, ID);
-        return new ResponseEntity<>(ResponseEntity.ok(ID), HttpStatus.OK);
+    public ResponseEntity<?> removeProduct(@RequestBody MyRequest<Long> requestBody) {
+        String token = requestBody.getToken();
+        Long id = requestBody.getData();
+
+        productServices.deleteById(token, id);
+        return new ResponseEntity<>(ResponseEntity.ok(id), HttpStatus.OK);
     }
 }
