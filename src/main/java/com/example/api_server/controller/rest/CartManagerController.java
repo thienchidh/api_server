@@ -1,6 +1,6 @@
-package com.example.api_server.controller;
+package com.example.api_server.controller.rest;
 
-import com.example.api_server.data_source.dao.CartsDAOImpl;
+import com.example.api_server.data_source.dao.CartsDAO;
 import com.example.api_server.model.Cart;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class CartManagerController {
     private static final Logger logger = LoggerFactory.getLogger(CartManagerController.class);
 
-    private CartsDAOImpl cartsDAO;
+    private CartsDAO cartsDAO;
 
     @RequestMapping(
             value = "/cart",
@@ -41,6 +41,7 @@ public class CartManagerController {
     )
     public ResponseEntity<?> updateCart(@RequestBody String token, @RequestBody Cart cart) {
         logger.info(cart.toString());
+        boolean isSuccess = cartsDAO.updateCart(token, cart);
         //TODO
         return new ResponseEntity<>(ResponseEntity.ok(cart), HttpStatus.OK);
     }

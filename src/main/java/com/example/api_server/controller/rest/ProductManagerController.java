@@ -1,4 +1,4 @@
-package com.example.api_server.controller;
+package com.example.api_server.controller.rest;
 
 import com.example.api_server.data_source.dao.ProductDAOImpl;
 import com.example.api_server.model.Product;

@@ -1,7 +1,7 @@
 package com.example.api_server.data_source.dao;
 
 import com.example.api_server.data_source.repo.AccountsRepository;
-import com.example.api_server.data_source.repo.UserSessionRepository;
+import com.example.api_server.helper.AuthenticationHelper;
 import com.example.api_server.model.Account;
 import com.example.api_server.model.User;
 import com.example.api_server.model.UserSession;
@@ -12,23 +12,29 @@ import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.lang.NonNull;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+@Transactional
 @AllArgsConstructor
 @Service
-public class AccountsDAOImpl implements AccountsDAO, ActionAccount {
+public class AccountsDAOImpl implements AccountsDAO {
 
     private static final Logger logger = LoggerFactory.getLogger(AccountsDAOImpl.class);
 
     private AccountsRepository accountsRepo;
-    private UserSessionRepository userSessionRepo;
-    private PasswordEncoder passwordEncoder;
+    private AuthenticationHelper authenticationHelper;
+    private UserSessionDAO userSessionDAO;
+
+    @Override
+    public <S extends Account> List<S> findAll(Example<S> example) {
+        return accountsRepo.findAll(example);
+    }
 
     @Override
     public List<Account> findAll() {
@@ -68,8 +74,8 @@ public class AccountsDAOImpl implements AccountsDAO, ActionAccount {
 
         if (optional.isPresent()) {
             Account accountDB = optional.get();
-            if (isLoginSuccess(accountClient, accountDB)) {
-                return makeUserSession(accountDB);
+            if (authenticationHelper.isLoginSuccess(accountClient, accountDB)) {
+                return userSessionDAO.makeUserSession(accountDB);
             }
         }
         return null;
@@ -78,24 +84,15 @@ public class AccountsDAOImpl implements AccountsDAO, ActionAccount {
     @Override
     public UserSession login(@NonNull String token) {
 
-        Optional<UserSession> optional = findUserSessionBy(token);
+        Optional<UserSession> optional = userSessionDAO.findUserSessionBy(token);
 
-        if (optional.isPresent()) {
-            UserSession session = optional.get();
-            Date today = Calendar.getInstance().getTime();
-
-            if (session.getDateExpired().after(today)) {
-                session.setDateExpired(getAfterDate());
-                return userSessionRepo.save(session);
-            }
-        }
-        return null;
+        return optional.map(session -> userSessionDAO.addAgeSession(session)).orElse(null);
     }
 
     @Override
     public boolean logout(@NonNull String token) {
 
-        Optional<UserSession> optional = findUserSessionBy(token);
+        Optional<UserSession> optional = userSessionDAO.findUserSessionBy(token);
 
         if (optional.isPresent()) {
             UserSession session = optional.get();
@@ -103,13 +100,14 @@ public class AccountsDAOImpl implements AccountsDAO, ActionAccount {
 
             if (session.getDateExpired().after(today)) {
                 session.setDateExpired(today);
-                userSessionRepo.save(session);
+                userSessionDAO.save(session);
                 return true;
             }
         }
         return false;
     }
 
+    @Transactional
     @Override
     public boolean changePassword(@NonNull Account accountClient) {
         Account probe = Account.builder().username(accountClient.getUsername()).build();
@@ -118,7 +116,7 @@ public class AccountsDAOImpl implements AccountsDAO, ActionAccount {
 
         if (optional.isPresent()) {
             Account accountDB = optional.get();
-            if (isLoginSuccess(accountClient, accountDB)) {
+            if (authenticationHelper.isLoginSuccess(accountClient, accountDB)) {
                 // update new password to datasource account
                 accountDB.setPassword(accountClient.getNewPassword());
                 saveAccount(accountDB);
@@ -131,6 +129,7 @@ public class AccountsDAOImpl implements AccountsDAO, ActionAccount {
         return false;
     }
 
+    @Transactional
     @Override
     public UserSession register(@NonNull Account account) {
         if (account.getUser() == null) return null;
@@ -138,84 +137,36 @@ public class AccountsDAOImpl implements AccountsDAO, ActionAccount {
         Account probe = Account.builder().username(account.getUsername()).build();
 
         boolean isAccountExists = accountsRepo.exists(Example.of(probe));
-        return isAccountExists ? null : makeUserSession(saveAccount(account));
+        return isAccountExists ? null : userSessionDAO.makeUserSession(saveAccount(account));
     }
 
-    private boolean isLoginSuccess(@NonNull Account accountClient, Account accountDB) {
-        return passwordEncoder.matches(accountClient.getPassword() + accountDB.getSalt(), accountDB.getPassword());
-    }
-
-    private Account saveAccount(@NonNull Account account) {
-        String salt = createSalt();
-        account.setSalt(salt);
-
-        String hashedPassword = makePassword(account, salt);
-        account.setPassword(hashedPassword);
-
-        // save to datasource
-        return accountsRepo.save(account);
-    }
-
-    private Optional<UserSession> findUserSessionBy(String token) {
-        UserSession probe = UserSession.builder().token(token).build();
-        return userSessionRepo.findOne(Example.of(probe));
-    }
-
-    private void logoutAllSessionOfUser(Long id) {
+    @Transactional
+    @Override
+    public void logoutAllSessionOfUser(Long userId) {
         UserSession probe = UserSession.builder()
                 .user(User.builder()
-                        .id(id)
+                        .id(userId)
                         .build()
                 )
                 .build();
-        List<UserSession> userSessions = userSessionRepo.findAll(Example.of(probe));
+        List<UserSession> userSessions = userSessionDAO.findAll(Example.of(probe));
         Date today = Calendar.getInstance().getTime();
         for (UserSession e : userSessions) {
             if (e.getDateExpired().after(today)) {
                 e.setDateExpired(today);
+                userSessionDAO.save(e);
             }
         }
-        userSessionRepo.saveAll(userSessions);
     }
 
-    private UserSession makeUserSession(Account account) {
-        Date dateExpiredToken = getAfterDate();
+    private Account saveAccount(@NonNull Account account) {
+        String salt = authenticationHelper.createSalt();
+        account.setSalt(salt);
 
-        return makeUserSession(account, dateExpiredToken);
-    }
+        String hashedPassword = authenticationHelper.makePassword(account, salt);
+        account.setPassword(hashedPassword);
 
-    private Date getAfterDate() {
-        final int amountDefault = 30;
-        return getAfterDate(amountDefault);
-    }
-
-    private Date getAfterDate(int amount) {
-        Calendar calendar = Calendar.getInstance();
-
-        calendar.add(Calendar.DAY_OF_MONTH, amount);
-        return calendar.getTime();
-    }
-
-    private UserSession makeUserSession(Account account, Date dateExpiredToken) {
-
-        return userSessionRepo.save(UserSession.builder()
-                .token(makeToken(account))
-                .dateExpired(dateExpiredToken)
-                .user(account.getUser())
-                .build()
-        );
-    }
-
-    private String createSalt() {
-        Date today = Calendar.getInstance().getTime();
-        return passwordEncoder.encode(today.toString());
-    }
-
-    private String makePassword(@NonNull Account account, String salt) {
-        return passwordEncoder.encode(account.getPassword() + salt);
-    }
-
-    private String makeToken(@NonNull Account account) {
-        return account.getUsername() + passwordEncoder.encode(account.getPassword());
+        // save to datasource
+        return accountsRepo.save(account);
     }
 }

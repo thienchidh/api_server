@@ -1,6 +1,7 @@
 package com.example.api_server.controller;
 
-import com.example.api_server.data_source.dao.AccountsDAOImpl;
+import com.example.api_server.controller.rest.UserMangerController;
+import com.example.api_server.data_source.dao.AccountsDAO;
 import com.example.api_server.data_source.repo.AccountsRepository;
 import com.example.api_server.data_source.repo.UserSessionRepository;
 import com.example.api_server.model.Account;
@@ -33,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class ActionsTest {
 
     private static final Logger logger = LoggerFactory.getLogger(UserMangerController.class);
-    private AccountsDAOImpl accountsDAO;
+    private AccountsDAO accountsDAO;
     private AccountsRepository accountsRepo;
     private UserSessionRepository sessionRepo;
 

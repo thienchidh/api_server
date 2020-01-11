@@ -3,6 +3,7 @@ package com.example.api_server.data_source.dao;
 import com.example.api_server.data_source.repo.ProductRepository;
 import com.example.api_server.model.Product;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,11 @@ import java.util.Optional;
 public class ProductDAOImpl implements ProductDAO {
 
     private ProductRepository repo;
+
+    @Override
+    public <S extends Product> List<S> findAll(Example<S> example) {
+        return repo.findAll(example);
+    }
 
     @Override
     public List<Product> findAll() {

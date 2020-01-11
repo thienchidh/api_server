@@ -3,6 +3,7 @@ package com.example.api_server.data_source.dao;
 import com.example.api_server.data_source.repo.UserRepository;
 import com.example.api_server.model.User;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,11 @@ import java.util.Optional;
 public class UserDAOImpl implements UserDAO {
 
     private UserRepository repository;
+
+    @Override
+    public <S extends User> List<S> findAll(Example<S> example) {
+        return repository.findAll(example);
+    }
 
     @Override
     public List<User> findAll() {

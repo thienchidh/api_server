@@ -1,6 +1,6 @@
-package com.example.api_server.controller;
+package com.example.api_server.controller.rest;
 
-import com.example.api_server.data_source.dao.AccountsDAOImpl;
+import com.example.api_server.controller.services.UserServices;
 import com.example.api_server.model.Account;
 import com.example.api_server.model.UserSession;
 import lombok.AllArgsConstructor;
@@ -18,15 +18,14 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserMangerController {
 
     private static final Logger logger = LoggerFactory.getLogger(UserMangerController.class);
-
-    private AccountsDAOImpl accountsDAO;
+    private UserServices userServices;
 
     @RequestMapping(
             value = "/login",
             method = RequestMethod.POST
     )
     ResponseEntity<?> userLogin(@RequestBody Account account) {
-        UserSession session = accountsDAO.login(account);
+        UserSession session = userServices.login(account);
         if (session != null) {
             return new ResponseEntity<>(ResponseEntity.ok(session), HttpStatus.OK);
         }
@@ -38,7 +37,7 @@ public class UserMangerController {
             method = RequestMethod.POST
     )
     ResponseEntity<?> userLogin(@RequestBody String token) {
-        UserSession session = accountsDAO.login(token);
+        UserSession session = userServices.login(token);
         if (session != null) {
             return new ResponseEntity<>(ResponseEntity.ok(session), HttpStatus.OK);
         }
@@ -50,7 +49,7 @@ public class UserMangerController {
             method = RequestMethod.POST
     )
     ResponseEntity<?> userLogout(@RequestBody String token) {
-        boolean isLogout = accountsDAO.logout(token);
+        boolean isLogout = userServices.logout(token);
         return isLogout ? new ResponseEntity<>(ResponseEntity.ok().build(), HttpStatus.OK) : new ResponseEntity<>(ResponseEntity.notFound().build(), HttpStatus.NOT_FOUND);
     }
 
@@ -59,7 +58,7 @@ public class UserMangerController {
             method = RequestMethod.POST
     )
     ResponseEntity<?> userRegister(@RequestBody Account account) {
-        UserSession session = accountsDAO.register(account);
+        UserSession session = userServices.register(account);
         if (session != null) {
             return new ResponseEntity<>(ResponseEntity.ok(session), HttpStatus.OK);
         }
@@ -71,7 +70,7 @@ public class UserMangerController {
             method = RequestMethod.POST
     )
     ResponseEntity<?> userChangePassword(@RequestBody Account account) {
-        boolean isPasswordChanged = accountsDAO.changePassword(account);
+        boolean isPasswordChanged = userServices.changePassword(account);
         return isPasswordChanged ? new ResponseEntity<>(ResponseEntity.ok().build(), HttpStatus.OK) : new ResponseEntity<>(ResponseEntity.notFound().build(), HttpStatus.NOT_FOUND);
     }
 }
