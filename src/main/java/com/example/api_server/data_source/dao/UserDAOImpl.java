@@ -43,6 +43,11 @@ public class UserDAOImpl implements UserDAO {
     }
 
     @Override
+    public void saveAll(Iterable<User> iterable) {
+        repository.saveAll(iterable);
+    }
+
+    @Override
     public void deleteById(long id) {
         repository.deleteById(id);
     }

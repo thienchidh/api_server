@@ -52,6 +52,11 @@ public class UserSessionDAOImpl implements UserSessionDAO {
     }
 
     @Override
+    public void saveAll(Iterable<UserSession> iterable) {
+        sessionRepo.saveAll(iterable);
+    }
+
+    @Override
     public void deleteById(long id) {
         sessionRepo.deleteById(id);
     }

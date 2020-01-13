@@ -44,8 +44,27 @@ public class ProductManagerController {
         String token = requestBody.getToken();
         Product product = requestBody.getData();
 
-        productServices.save(token, product);
-        return new ResponseEntity<>(ResponseEntity.ok(product), HttpStatus.OK);
+        boolean isSaved = productServices.save(token, product);
+        if (isSaved) {
+            return new ResponseEntity<>(ResponseEntity.ok(product), HttpStatus.OK);
+        }
+        return new ResponseEntity<>(ResponseEntity.notFound().build(), HttpStatus.NOT_FOUND);
+    }
+
+    @RequestMapping(
+            value = "/products/addList",
+            method = RequestMethod.POST,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public ResponseEntity<?> addListProduct(@RequestBody MyRequest<List<Product>> requestBody) {
+        String token = requestBody.getToken();
+        List<Product> products = requestBody.getData();
+
+        boolean isSaved = productServices.saveAll(token, products);
+        if (isSaved) {
+            return new ResponseEntity<>(ResponseEntity.ok(products), HttpStatus.OK);
+        }
+        return new ResponseEntity<>(ResponseEntity.notFound().build(), HttpStatus.NOT_FOUND);
     }
 
     @RequestMapping(
@@ -56,7 +75,10 @@ public class ProductManagerController {
         String token = requestBody.getToken();
         Long id = requestBody.getData();
 
-        productServices.deleteById(token, id);
-        return new ResponseEntity<>(ResponseEntity.ok(id), HttpStatus.OK);
+        boolean isDeleted = productServices.deleteById(token, id);
+        if (isDeleted) {
+            return new ResponseEntity<>(ResponseEntity.ok(id), HttpStatus.OK);
+        }
+        return new ResponseEntity<>(ResponseEntity.notFound().build(), HttpStatus.NOT_FOUND);
     }
 }

@@ -43,6 +43,11 @@ public class ProductDAOImpl implements ProductDAO {
     }
 
     @Override
+    public void saveAll(Iterable<Product> iterable) {
+        repo.saveAll(iterable);
+    }
+
+    @Override
     public void deleteById(long id) {
         repo.deleteById(id);
     }

@@ -57,6 +57,11 @@ public class AccountsDAOImpl implements AccountsDAO {
     }
 
     @Override
+    public void saveAll(Iterable<Account> iterable) {
+        accountsRepo.saveAll(iterable);
+    }
+
+    @Override
     public void deleteById(long id) {
         accountsRepo.deleteById(id);
     }

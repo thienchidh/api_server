@@ -66,7 +66,7 @@ public class AuthenticationHelperImpl implements AuthenticationHelper {
         if (isAliveToken(token)) {
             Optional<UserSession> session = sessionRepo.findOne(Example.of(UserSession.builder().token(token).build()));
             if (session.isPresent()) {
-                return session.get().getAccount().getRole().equals(Role.IS_ADMIN);
+                return session.get().getUser().getRole().equals(Role.IS_ADMIN);
             }
         }
         return false;
@@ -77,7 +77,7 @@ public class AuthenticationHelperImpl implements AuthenticationHelper {
         if (isAliveToken(token)) {
             Optional<UserSession> session = sessionRepo.findOne(Example.of(UserSession.builder().token(token).build()));
             if (session.isPresent()) {
-                return session.get().getAccount().getRole().equals(Role.IS_USER);
+                return session.get().getUser().getRole().equals(Role.IS_USER);
             }
         }
         return false;

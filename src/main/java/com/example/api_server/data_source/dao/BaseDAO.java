@@ -19,6 +19,8 @@ public interface BaseDAO<T> {
 
     void save(T o);
 
+    void saveAll(Iterable<T> iterable);
+
     void deleteById(long id);
 
     void delete(T o);

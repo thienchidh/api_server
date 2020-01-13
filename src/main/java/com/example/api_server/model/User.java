@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
 
 import javax.persistence.*;
 
@@ -23,15 +24,23 @@ public class User {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "name", nullable = false)
-    private String name;
+    @Column(name = "firstName", nullable = false)
+    private String firstName;
+
+    @Column(name = "lastName", nullable = false)
+    private String lastName;
+
     @Column(name = "address")
     private String address;
-//
-//    @JsonIgnore
-//    @Column(name = "email")
-//    private String email;
+
+    @Column(name = "email", nullable = false, unique = true)
+    private String email;
 
     @Column(name = "other")
     private String other;
+
+    // default rule = users
+    @Column(name = "role", nullable = false)
+    @ColumnDefault("'" + Role.IS_USER + "'")
+    private String role = Role.IS_USER;
 }

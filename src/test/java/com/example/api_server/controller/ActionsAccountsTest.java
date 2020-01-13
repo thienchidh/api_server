@@ -8,7 +8,6 @@ import com.example.api_server.model.Account;
 import com.example.api_server.model.Role;
 import com.example.api_server.model.User;
 import com.example.api_server.model.UserSession;
-import com.google.gson.Gson;
 import lombok.Setter;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
@@ -42,14 +41,34 @@ public class ActionsAccountsTest {
     void test01_UserRegister() {
         accountsRepo.deleteAll();
         assertEquals(0, accountsRepo.count());
-        String jsonUser = "{\"username\":\"thienchidh\",\"password\":\"123456\",\"user\":{\"name\":\"Trần Thiện Chí\",\"address\":\"Địa Chỉ\",\"other\":\"Khác\"}}";
-        Gson gson = new Gson();
-        accountsDAO.register(gson.fromJson(jsonUser, Account.class));
+        Account user = Account.builder()
+                .username("thienchidh")
+                .password("123456")
+                .user(
+                        User.builder()
+                                .firstName("tran")
+                                .lastName("chi")
+                                .email("thienchidh@gmail.com")
+                                .role(Role.IS_USER)
+                                .build()
+                ).build();
+        accountsDAO.register(user);
         assertEquals(1, accountsRepo.count());
-        accountsDAO.register(gson.fromJson(jsonUser, Account.class));
+        accountsDAO.register(user);
         assertEquals(1, accountsRepo.count());
-        String jsonAdmin = "{\"username\":\"admin\",\"password\":\"123456\",\"role\":\"IS_ADMIN\",\"user\":{\"name\":\"Trần Thiện Chí\",\"address\":\"Địa Chỉ\",\"other\":\"Khác\"}}";
-        accountsDAO.register(gson.fromJson(jsonAdmin, Account.class));
+
+        Account admin = Account.builder()
+                .username("admin" + new Random().nextFloat())
+                .password("123456")
+                .user(
+                        User.builder()
+                                .firstName("tran")
+                                .lastName("chi")
+                                .email("thienchidh@gmail.com__")
+                                .role(Role.IS_USER)
+                                .build()
+                ).build();
+        accountsDAO.register(admin);
         assertEquals(2, accountsRepo.count());
     }
 
@@ -83,20 +102,22 @@ public class ActionsAccountsTest {
                 Account account = Account.builder()
                         .username("username" + i + new Random().nextFloat())
                         .password("123456")
-                        .role(Role.IS_USER)
                         .user(
                                 User.builder()
-                                        .name("username" + i)
+                                        .firstName("tran")
+                                        .lastName("chi" + i)
+                                        .email("thienchidh@gmail.com" + i)
+                                        .role(Role.IS_USER)
                                         .build()
                         ).build();
                 UserSession register = accountsDAO.register(account);
                 assertNotNull(account.getUsername());
                 assertNotNull(register.getUser());
-                assertNotNull(register.getUser().getName());
+                assertNotNull(register.getUser().getLastName());
             }
         });
 
-        for (var e : accountsRepo.findAll()) logger.info(e.getUser().getName());
+        for (var e : accountsRepo.findAll()) logger.info(e.getUser().getLastName());
 
         for (var e : sessionRepo.findAll()) {
             if (new Date().before(e.getDateExpired())) {

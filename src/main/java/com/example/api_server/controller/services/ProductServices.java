@@ -43,6 +43,14 @@ public class ProductServices {
         return false;
     }
 
+    public boolean saveAll(@NonNull String token, @NonNull List<Product> o) {
+        if (authenticationHelper.isTokenAdmin(token)) {
+            productDAO.saveAll(o);
+            return true;
+        }
+        return false;
+    }
+
     public boolean deleteById(@NonNull String token, @NonNull long id) {
         if (authenticationHelper.isTokenAdmin(token) && productDAO.existsById(id)) {
             productDAO.deleteById(id);

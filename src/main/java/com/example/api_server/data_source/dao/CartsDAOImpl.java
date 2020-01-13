@@ -47,6 +47,11 @@ public class CartsDAOImpl implements CartsDAO {
     }
 
     @Override
+    public void saveAll(Iterable<Cart> iterable) {
+        cartsRepo.saveAll(iterable);
+    }
+
+    @Override
     public void deleteById(long id) {
         cartsRepo.deleteById(id);
     }
