@@ -25,11 +25,7 @@ public class Cart {
     @JoinColumn(name = "productId")
     private List<Product> products;
 
-<<<<<<< HEAD
     @OneToOne(cascade = CascadeType.MERGE)
-=======
-    @OneToOne(cascade = CascadeType.ALL)
->>>>>>> de5be0322c67d9011a2f7e2496040bd6cd26fc6a
     @JoinColumn(name = "userId")
     private User user;
 }
