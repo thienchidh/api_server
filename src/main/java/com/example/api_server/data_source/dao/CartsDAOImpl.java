@@ -6,6 +6,8 @@ import com.example.api_server.model.Cart;
 import com.example.api_server.model.User;
 import com.example.api_server.model.UserSession;
 import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,6 +19,8 @@ import java.util.Optional;
 @AllArgsConstructor
 @Service
 public class CartsDAOImpl implements CartsDAO {
+    private static final Logger logger = LoggerFactory.getLogger(CartsDAOImpl.class);
+
     private AuthenticationHelper authentication;
     private CartsRepository cartsRepo;
     private UserSessionDAO userSessionDAO;
@@ -77,8 +81,9 @@ public class CartsDAOImpl implements CartsDAO {
                         .build()
                 ));
                 if (optional.isPresent()) {
-                    cart.setId(optional.get().getId());
-                    save(cart);
+                    Cart cardDB = optional.get();
+                    cardDB.setProducts(cart.getProducts());
+                    save(cardDB);
                 }
                 return true;
             }

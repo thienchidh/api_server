@@ -33,6 +33,10 @@ build/
 ## log
 log.log
 
-.mvn/
+.mvn/*
+
+run.sh
+
+
 
 

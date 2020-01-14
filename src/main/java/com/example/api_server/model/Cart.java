@@ -21,11 +21,11 @@ public class Cart {
     @Column(name = "id")
     private Long id;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinColumn(name = "productId")
     private List<Product> products;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.MERGE)
     @JoinColumn(name = "userId")
     private User user;
 }
