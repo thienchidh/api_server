@@ -8,8 +8,17 @@
     -   frontend:
         //TODO        
 
-#**TODO**
-
+#languages, technologies, dependency:
+    - backend:
+        + language: JAVA
+        + frameworks, libs: spring, hibernate, Lombok
+        + ide: intellij
+    
+    -   frontend:
+        + language: javascript
+        + frameworks, libs: react, redux, material ui,...
+        + ide: intellij
+             
 #build production:
 
     - backend:
@@ -45,7 +54,9 @@
         user account:
             username:chi
             password:123
-
+#
+    updating...
+    
 # **Thanks you!**
     
     
