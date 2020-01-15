@@ -1,7 +1,7 @@
 
 # **When reading the code, it may be ~~_slightly different_~~ from the report!**
 
-#**Config before run/build**
+#Config before run/build:
     - backend:
         cd src/main/resources/application.properties
         edit config [database]
@@ -34,6 +34,17 @@
         cd project_location
         npm start
 
+#data_sample:
+    you can using it for quickly test
+    -location: resources/data_sample_db.sql
+    
+    -login:
+        admin account:
+            username: admin
+            password: admin
+        user account:
+            username:chi
+            password:123
 
 # **Thanks you!**
     
